@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <script src="https://sdk.accountkit.com/en_US/sdk.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <form id="my_form" action="/sendcode" method="POST">
+
+      <div>
+        <label>Enter country code:</label>
+        <input type="text" id="country_code" />
+      </div>
+
+      <div>
+        <label>Enter phone number :</label>
+        <input type="text" id="phone_num" />
+      </div>
+      <button type="button" onclick="phone_btn_onclick();">Login via SMS</button>
+
+      <input type="hidden" id="code" name="code" value="" />
+      <input type="hidden" id="csrf_nonce" name="csrf_nonce" value="" />
+
+    </form>
+  </div>
+  <script>
+    // initialize Account Kit with CSRF protection
+    AccountKit_OnInteractive = function () {
+      AccountKit.init(
+        {
+          appId: {{ appId }},
+      state: "{{csrf}}",
+        version: "{{version}}"
+          }
+        );
+      };
+
+    // login callback
+    function loginCallback(response) {
+      // console.log(response);
+      if (response.status === "PARTIALLY_AUTHENTICATED") {
+        document.getElementById("code").value = response.code;
+        document.getElementById("csrf_nonce").value = response.state;
+        document.getElementById("my_form").submit();
+      }
+      else if (response.status === "NOT_AUTHENTICATED") {
+        console.log('Not Authenticated')
+      }
+      else if (response.status === "BAD_PARAMS") {
+        console.log('Bad Params');
+      }
+    }
+
+    // phone form submission handler
+    function phone_btn_onclick() {
+      var country_code = document.getElementById("country_code").value;
+      var ph_num = document.getElementById("phone_num").value;
+      AccountKit.login('PHONE',
+        { countryCode: country_code, phoneNumber: ph_num }, // will use default values if this is not specified
+        loginCallback);
+    }
+
+  </script>
+</body>
+
+</html>
